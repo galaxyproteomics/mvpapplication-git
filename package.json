@@ -1,0 +1,11 @@
+{
+  "name": "mvppp",
+  "version": "1.0.0",
+  "description": "MVP Viewer",
+  "main": "app.js",
+  "scripts": {
+    "build": "sh build.sh"
+  },
+  "author": "Thomas McGowan <mcgo0092@umn.edu>",
+  "license": "MIT"
+}
