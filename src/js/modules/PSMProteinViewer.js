@@ -12,10 +12,19 @@ function IGVModule(confObj) {
     this.addTrackCB = confObj.addTrackCB;
     this.igvDiv = confObj.igvDiv;
     this.data = confObj.data;
-    this.genome = confObj.dbkey || "hg19"; //A default value
+    if (confObj.genome) {
+        this.genome = confObj.genome;
+    } else {
+        this.genome = confObj.dbkey || "hg19"; //A default value // TODO: Really?? 
+    }
+    
     this.hidden = false;
-    this.fasta_file = confObj.fasta_file;
-    this.fasta_index = confObj.fasta_index;
+    if (confObj.fasta_file) {
+        this.fasta_file = confObj.fasta_file;
+    }
+    if (confObj.fasta_index) {
+        this.fasta_index = confObj.fasta_index;
+    }
 }
 
 //Build all the custom UI surrounding the IGV browser.
@@ -72,11 +81,18 @@ IGVModule.prototype.goToLocation = function (loc) {
 };
 
 IGVModule.prototype.showBrowser = function () {
+    
+    let ref = {};
+    // Are we working from a Galaxy genome or IGV reference?
+    if (this.fasta_file) {
+        ref['fastaURL'] = this.fasta_file;
+        ref['indexURL'] = this.fasta_index;
+    } else {
+        ref['genome'] = this.genome;
+    }
+
     let options = {
-        reference: {
-            fastaURL: this.fasta_file,
-            indexURL: this.fasta_index,
-        },
+        reference: ref,        
         locus: this.data.chrom + ":" + this.data.start + "-" + this.data.end
     };
     this.fillChrome();
@@ -163,6 +179,59 @@ var IGVManager = (function (igm) {
     };
 
 
+    //IGV default genome use. 
+    // We are here because of a Galaxy API call failure. Fall back to one of the
+    // supported IGV genomes. Otherwise, inform the user we are having an issue.
+    igm.defaultGenomeConfig = function(defaultObject) {
+        let hosted_genomes = [
+            "hg38",
+            "hg19",
+            "hg18",
+            "mm10",
+            "gorGor4",
+            "panTro4",
+            "panPan2",
+            "susScr11",
+            "bosTau8",
+            "canFam3",
+            "rn6",
+            "danRer11",
+            "danRer10",
+            "dm6",
+            "ce11",
+            "sacCer3",
+        ];
+
+        //Do we have an exact match "galaxy dbKey": "mm10" <-> "hosted_genomes": "mm10"?
+        let idx = hosted_genomes.indexOf(defaultObject.genome.toLowerCase());
+        let igv_genome = '';
+        if (idx > -1) {
+            igv_genome = hosted_genomes[idx];
+            defaultObject.igvConfObj.fasta_file = null;
+            defaultObject.igvConfObj.fasta_index = null;
+            defaultObject.igvConfObj.genome = igv_genome;
+            igm.createNewBrowser(defaultObject.igvConfObj);
+        } else {
+            // Got a partial match?? mm9 will match mm10
+            let rx = /\D+/;
+            let galaxy_genome = rx.exec(defaultObject.genome.toLowerCase());
+            for (let i = 0; i < hosted_genomes.length; i++) {
+                let result = rx.exec(hosted_genomes[i]);
+                if (result[0] === galaxy_genome[0]) {
+                    // First match and we are out.
+                    defaultObject.igvConfObj.fasta_file = null;
+                    defaultObject.igvConfObj.fasta_index = null;
+                    defaultObject.igvConfObj.genome = result["input"];
+                    igm.createNewBrowser(defaultObject.igvConfObj);
+                }
+            }
+            // No matches at all
+            alert("No genomes are available to use with the MVP Viewer.");
+        }
+        
+
+    }
+
     igm.buildModule = function (confOb) {
         //Get URI for index file and fasta file, URI call will be based on dbkey.
         //http://localhost:8080/api/genomes/mmXX/genome_uri
@@ -176,9 +245,12 @@ var IGVManager = (function (igm) {
                 cobj.fasta_index = data["fasta_index"];
                 igm.createNewBrowser(cobj);
         }).catch(function(error){
-            console.log(error);
+            // Use IGV supported genomes only. 
+            igm.defaultGenomeConfig({
+                'genome': cobj.dbkey,
+                'igvConfObj': cobj
+            });
         }) 
-        
     };
 
     igm.init = function(confObj) {

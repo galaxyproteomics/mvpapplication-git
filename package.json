@@ -4,7 +4,8 @@
   "description": "MVP Viewer",
   "main": "app.js",
   "scripts": {
-    "build": "sh build.sh"
+    "build": "sh build.sh",
+    "dev_build": "sh build_dev.sh"
   },
   "author": "Thomas McGowan <mcgo0092@umn.edu>",
   "license": "MIT"
