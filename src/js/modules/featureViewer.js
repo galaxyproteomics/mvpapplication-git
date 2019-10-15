@@ -185,19 +185,18 @@ var featureViewer = {
                 objD[key].start = d[0];
                 objD[key].end = d[1];
                 objD[key].isDecoy = d[2];
+                objD[key].mods = [];
                 if (d[3] !== null) {
-                    objD[key].mods = [[d[3], d[4]]]; //[mod offset, mod name]
+                    objD[key].mods.push([d[3], d[4]]); //[mod offset, mod name]
                 }
                 objD[key].spectrum_identID = d[7];
                 objD[key].scores = [data.data[0].slice(10), d.slice(10)];
             } else {
                 //Multiple mods exist on the peptide.
                 if (d[3] !== null) {
-                    objD[key].mods = [[d[3], d[4]]]; //[mod offset, mod name]
+                    objD[key].mods.push([d[3], d[4]]); //[mod offset, mod name]
                 }
-
             }
-            
         });
     
         return objD;
@@ -261,7 +260,7 @@ var featureViewer = {
                 return s + '</dl>';
             })();
 
-            if (d.hasOwnProperty('mods')) {
+            if (d.mods.length > 0) {
                 obj.mods = d.mods;
             }
 
