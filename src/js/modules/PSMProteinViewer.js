@@ -1,5 +1,13 @@
 
 
+const GenomeWarningText = {
+    'text': '<p class="lead">IGV - Galaxy - Genomes</p>' +
+    '<p>The IGV viewer requires access to full genome sequences.</p><p>Galaxy can provide access to a genome sequences via the internal API. This allows for the use of custom reference sequences.</p>' + 
+    '<p>In addition, IGV has a set of reference genomes that are available to all users of the IGV.js tool</p>' + 
+    '<p>However, the genome associated with the mz.SQLite history entry is not working with the Galaxy API nor is it a standard IGV genome.</p>' +
+    '<p>Until this issue is resolved, you will not be able to see a reference sequence in the MVP viewer.</p>'
+};
+
 /**
  * Module code for creating and managing the IGV.js browser.
  * 
@@ -226,10 +234,11 @@ var IGVManager = (function (igm) {
                 }
             }
             // No matches at all
-            alert("No genomes are available to use with the MVP Viewer.");
+            BuildHelpPanel.showHelp({
+                'helpText':GenomeWarningText.text,
+                'title': 'Missing Genome: ' + defaultObject.genome
+            });
         }
-        
-
     }
 
     igm.buildModule = function (confOb) {
@@ -245,6 +254,7 @@ var IGVManager = (function (igm) {
                 cobj.fasta_index = data["fasta_index"];
                 igm.createNewBrowser(cobj);
         }).catch(function(error){
+            // There is an error coming back from the API call. Fallback to IGV functionality.
             // Use IGV supported genomes only. 
             igm.defaultGenomeConfig({
                 'genome': cobj.dbkey,
