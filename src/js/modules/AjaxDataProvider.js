@@ -8,9 +8,14 @@ var PeptideModifications = (function(pm){
     //[iTRAQ4plex]RTLNISHNLH{S:Phospho}LLPEVSPM{K:iTRAQ4plex}NR
     //Returns an html formatted sequence including modifications for a list of peptide ids found in pepIDs
     pm.htmlFormatSequences = function (objs) { //pepIDs
-
         objs.data.forEach(function(cv){
-            let s = cv['"Sequence"'];
+            let s = undefined;
+            if (cv['"Sequence"']) {
+                s = cv['"Sequence"'];
+            } else {
+                s = cv['"PEPTIDE_ID"'];
+            }
+            
             s = s.replace(/{([A-Z]):(.+?)}/g, '<span class="aa_mod" data-toggle="tooltip" data-placement="top" title="$2">$1</span>');
             s = s.replace(/\[(\S+?)\]/g, '<span class="aa_mod" data-toggle="tooltip" data-placement="top" title="Terminal Mod $1">&bull;</span>');
 
@@ -19,8 +24,6 @@ var PeptideModifications = (function(pm){
             s = s.replace(/([A-Z]){(.+?)}/g, '<span class="aa_mod" data-toggle="tooltip" data-placement="top" title="$2">$1</span>');
 
             //For the olders version
-
-
             cv['"Sequence"'] = s;
         });
         return objs;
