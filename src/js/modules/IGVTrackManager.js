@@ -13,7 +13,7 @@ var IGVTrackManager = (function(itm){
 
     itm.queryGalaxyHistory = function() {
         let url = itm.galaxyConfiguration.href +
-            '/api/histories/' + itm.galaxyConfiguration.historyID + '/contents/';
+            '/api/histories/' + itm.galaxyConfiguration.historyID + '/contents';
 
         $.get(url, function(data){
             let files = [];
